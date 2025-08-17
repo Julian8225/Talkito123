@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Talkito Simple</title>
+  <style>
+    body { font-family: Arial; text-align: center; }
+    #chat { border: 1px solid #ccc; width: 300px; margin: 20px auto; padding: 10px; height: 300px; overflow-y: auto; }
+    #message { width: 200px; }
+  </style>
+</head>
+<body>
+  <h2>Talkito Simple</h2>
+  <input id="username" placeholder="Tu nombre"><br><br>
+  <input id="room" placeholder="Sala"><br><br>
+  <button onclick="joinRoom()">Entrar</button>
+
+  <div id="chat" style="display:none;"></div>
+  <input id="message" placeholder="Mensaje" style="display:none;">
+  <button onclick="sendMessage()" id="sendBtn" style="display:none;">Enviar</button>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let room = "";
+    let user = "";
+
+    function joinRoom() {
+      user = document.getElementById("username").value;
+      room = document.getElementById("room").value;
+      if(user && room) {
+        socket.emit("joinRoom", room);
+        document.getElementById("chat").style.display = "block";
+        document.getElementById("message").style.display = "inline-block";
+        document.getElementById("sendBtn").style.display = "inline-block";
+      }
+    }
+
+    function sendMessage() {
+      const msg = document.getElementById("message").value;
+      if(msg) {
+        socket.emit("chatMessage", { room, msg, user });
+        document.getElementById("message").value = "";
+      }
+    }
+
+    socket.on("chatMessage", ({ user, msg }) => {
+      const chat = document.getElementById("chat");
+      chat.innerHTML += "<p><b>" + user + ":</b> " + msg + "</p>";
+      chat.scrollTop = chat.scrollHeight;
+    });
+  </script>
+</body>
+</html>

@@ -3,30 +3,31 @@ const app = express();
 const http = require("http").createServer(app);
 const io = require("socket.io")(http);
 
-app.use(express.static(__dirname));
+const PORT = process.env.PORT || 3000;
 
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
+// Servir los archivos de la carpeta "public"
+app.use(express.static("public"));
+
+// Si no encuentra el archivo, devolver siempre index.html
+const path = require("path");
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
+// --- Socket.io ---
 io.on("connection", (socket) => {
-  console.log("Un usuario se conectó");
+  console.log("Un usuario conectado");
 
-  socket.on("joinRoom", (room) => {
-    socket.join(room);
-    console.log("Usuario se unió a la sala: " + room);
-  });
-
-  socket.on("chatMessage", ({ room, msg, user }) => {
-    io.to(room).emit("chatMessage", { user, msg });
+  socket.on("chat message", (msg) => {
+    io.emit("chat message", msg);
   });
 
   socket.on("disconnect", () => {
-    console.log("Un usuario se desconectó");
+    console.log("Usuario desconectado");
   });
 });
 
-const PORT = process.env.PORT || 3000;
+// Iniciar servidor
 http.listen(PORT, () => {
-  console.log("Servidor escuchando en el puerto " + PORT);
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });
